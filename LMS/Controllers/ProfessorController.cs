@@ -4,9 +4,11 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using LMS.Models.LMSModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 // For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 [assembly: InternalsVisibleTo( "LMSControllerTests" )]
@@ -118,7 +120,15 @@ namespace LMS_CustomIdentity.Controllers
         /// <returns>The JSON array</returns>
         public IActionResult GetStudentsInClass(string subject, int num, string season, int year)
         {
-            return Json(null);
+            var query = from student in db.Students
+                        join enrollment in db.Enrolleds on student.UId equals enrollment.UId
+                        join classes in db.Classes on enrollment.ClassId equals classes.ClassId
+                        join courses in db.Courses on classes.CourseId equals courses.CourseId
+                        where (classes.SemSeason == season && classes.SemYear == year)
+                        && courses.Subject == subject && courses.CourseNum == num
+                        select new { fname = student.FName, lname = student.LName, uid = student.UId, dob = student.Dob, enrollment.Grade };
+
+            return Json(query.ToArray());
         }
 
 
