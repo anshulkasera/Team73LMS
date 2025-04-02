@@ -4,6 +4,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using LMS.Models.LMSModels;
 using Microsoft.AspNetCore.Mvc;
 
@@ -50,8 +51,23 @@ namespace LMS.Controllers
         /// false if the department already exists, true otherwise.</returns>
         public IActionResult CreateDepartment(string subject, string name)
         {
-            
-            return Json(new { success = false});
+            var query = from departments in db.Departments
+                        where departments.Subject == subject
+                        && departments.Name == name
+                        select departments;
+            if (query.Any())
+                return Json(new { success = false });
+            else
+            {
+                var department = new Department()
+                {
+                    Subject = subject,
+                    Name = name
+                };
+                db.Departments.Add(department);
+                db.SaveChanges();
+            }
+            return Json(new { success = true });
         }
 
 
@@ -65,8 +81,10 @@ namespace LMS.Controllers
         /// <returns>The JSON result</returns>
         public IActionResult GetCourses(string subject)
         {
-            
-            return Json(null);
+            var query = from courses in db.Courses
+                        where courses.Subject == subject
+                        select new { name = courses.CourseName, number = courses.CourseNum };
+            return Json(query.ToArray());
         }
 
         /// <summary>
@@ -80,9 +98,10 @@ namespace LMS.Controllers
         /// <returns>The JSON result</returns>
         public IActionResult GetProfessors(string subject)
         {
-            
-            return Json(null);
-            
+            var query = from professors in db.Professors
+                        where professors.Subject == subject
+                        select new { fname = professors.FName, lname = professors.LName, uid = professors.UId };
+            return Json(query.ToArray());
         }
 
 
@@ -97,8 +116,25 @@ namespace LMS.Controllers
         /// <returns>A JSON object containing {success = true/false}.
         /// false if the course already exists, true otherwise.</returns>
         public IActionResult CreateCourse(string subject, int number, string name)
-        {           
-            return Json(new { success = false });
+        {
+            var query = from courses in db.Courses
+                        where courses.Subject == subject
+                        && courses.CourseNum == number
+                        select courses;
+            if (query.Any())
+                return Json(new { success = false });
+            else
+            {
+                var course = new Course()
+                {
+                    Subject = subject,
+                    CourseName = name,
+                    CourseNum = (uint)number
+                };
+                db.Courses.Add(course);
+                db.SaveChanges();
+            }
+            return Json(new { success = true });
         }
 
 
@@ -120,13 +156,43 @@ namespace LMS.Controllers
         /// a Class offering of the same Course in the same Semester,
         /// true otherwise.</returns>
         public IActionResult CreateClass(string subject, int number, string season, int year, DateTime start, DateTime end, string location, string instructor)
-        {            
-            return Json(new { success = false});
+        {
+            var query = from classes in db.Classes
+                        join course in db.Courses
+                        on classes.CourseId equals course.CourseId
+                        into joined
+                        from j in joined.DefaultIfEmpty()
+                        where ((classes.StartTime >= TimeOnly.FromDateTime(start) && classes.StartTime <= TimeOnly.FromDateTime(end))
+                        || (classes.EndTime >= TimeOnly.FromDateTime(start) && classes.EndTime <= TimeOnly.FromDateTime(end))
+                        && classes.Location == location && (classes.SemSeason == season && classes.SemYear == year))
+                        || ((classes.SemSeason == season && classes.SemYear == year) && (j.CourseNum == number && j.Subject == subject))
+                        select j;
+            var query2 = from courses in db.Courses
+                         where courses.Subject == subject && courses.CourseNum == number
+                         select courses.CourseId;
+            uint result = query2.FirstOrDefault();
+            if (query.Any())
+                return Json(new { success = false });
+            else
+            {
+                var c = new Class()
+                {
+                    CourseId = result,                        
+                    Location = location,
+                    StartTime = TimeOnly.FromDateTime(start),
+                    EndTime = TimeOnly.FromDateTime(end),
+                    SemYear = (ushort)year,
+                    SemSeason = season,
+                    UId = instructor
+                };
+                db.Classes.Add(c);
+                db.SaveChanges();
+            }
+            return Json(new { success = true });
         }
-
 
         /*******End code to modify********/
 
-    }
+   }
 }
 
