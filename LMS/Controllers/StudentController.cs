@@ -77,8 +77,21 @@ namespace LMS.Controllers
         /// <param name="uid">The uid of the student</param>
         /// <returns>The JSON array</returns>
         public IActionResult GetMyClasses(string uid)
-        {           
-            return Json(null);
+        {
+            var query = from enrollment in db.Enrolleds
+                        join classes in db.Classes on enrollment.ClassId equals classes.ClassId
+                        join courses in db.Courses on classes.CourseId equals courses.CourseId
+                        where enrollment.UId == uid
+                        select new
+                        {
+                            subject = courses.Subject,
+                            number = courses.CourseNum,
+                            name = courses.CourseName,
+                            season = classes.SemSeason,
+                            year = classes.SemYear,
+                            grade = enrollment.Grade
+                        };
+            return Json(query.ToArray());
         }
 
         /// <summary>
@@ -96,8 +109,24 @@ namespace LMS.Controllers
         /// <param name="uid"></param>
         /// <returns>The JSON array</returns>
         public IActionResult GetAssignmentsInClass(string subject, int num, string season, int year, string uid)
-        {            
-            return Json(null);
+        {
+            var query = from enrollment in db.Enrolleds
+                        join classes in db.Classes on enrollment.ClassId equals classes.ClassId
+                        join courses in db.Courses on classes.CourseId equals courses.CourseId
+                        join assignmentCategory in db.AssignmentCategories on classes.ClassId equals assignmentCategory.ClassId
+                        join assignment in db.Assignments on assignmentCategory.CategoryId equals assignment.CategoryId
+                        join submission in db.Submissions on assignment.AssignmentId equals submission.AssignmentId into submissions
+                        from s1 in submissions.DefaultIfEmpty()
+                        where enrollment.UId == uid && courses.Subject == subject && courses.CourseNum == num
+                        && classes.SemSeason == season && classes.SemYear == year
+                        select new
+                        {
+                            aname = assignment.Name,
+                            cname = assignment.Category,
+                            due = assignment.DueDate,
+                            score = s1.Score
+                        };
+            return Json(query.ToArray());
         }
 
 
