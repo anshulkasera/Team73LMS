@@ -122,9 +122,9 @@ namespace LMS.Controllers
                         select new
                         {
                             aname = assignment.Name,
-                            cname = assignment.Category,
+                            cname = assignmentCategory.Name,
                             due = assignment.DueDate,
-                            score = s1.Score
+                            score = (uint?)s1.Score
                         };
             return Json(query.ToArray());
         }
@@ -150,8 +150,56 @@ namespace LMS.Controllers
         /// <returns>A JSON object containing {success = true/false}</returns>
         public IActionResult SubmitAssignmentText(string subject, int num, string season, int year,
           string category, string asgname, string uid, string contents)
-        {           
-            return Json(new { success = false });
+        {
+            var query = from assignmentCategories in db.AssignmentCategories
+                        join classes in db.Classes on assignmentCategories.ClassId equals classes.ClassId
+                        join courses in db.Courses on classes.CourseId equals courses.CourseId
+                        join assigments in db.Assignments on assignmentCategories.CategoryId equals assigments.CategoryId
+                        join submissions in db.Submissions on assigments.AssignmentId equals submissions.AssignmentId
+                        join students in db.Students on submissions.UId equals students.UId
+                        where courses.Subject == subject && courses.CourseNum == num && classes.SemSeason == season
+                        && classes.SemYear == year && assignmentCategories.Name == category && assigments.Name == asgname
+                        && students.UId == uid
+                        select submissions;
+            if (query.Any()) //If there is a submission, update the submission
+            {
+                foreach (Submission sub in query)
+                {
+                    sub.Time = DateTime.Now;
+                    sub.Contents = contents;
+                }
+                try
+                {
+                    db.SaveChanges();
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                    return Json(new { success = false });
+                }
+            }
+            else
+            {
+                var submission = new Submission
+                {
+                    Time = DateTime.Now,
+                    Contents = contents,
+                    Score = 0,
+                    UId = uid,
+                    AssignmentId = (from assignmentCategories in db.AssignmentCategories
+                                    join classes in db.Classes on assignmentCategories.ClassId equals classes.ClassId
+                                    join courses in db.Courses on classes.CourseId equals courses.CourseId
+                                    join assigments in db.Assignments on assignmentCategories.CategoryId equals assigments.CategoryId
+                                    //join submissions in db.Submissions on assigments.AssignmentId equals submissions.AssignmentId
+                                    //join students in db.Students on submissions.UId equals students.UId
+                                    where courses.Subject == subject && courses.CourseNum == num && classes.SemSeason == season
+                                    && classes.SemYear == year && assignmentCategories.Name == category && assigments.Name == asgname
+                                    select assigments.AssignmentId).SingleOrDefault()
+                };
+                db.Submissions.Add(submission);
+                db.SaveChanges();
+            }
+            return Json(new { success = true });
         }
 
 
