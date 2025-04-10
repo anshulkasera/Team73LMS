@@ -368,6 +368,7 @@ namespace LMS_CustomIdentity.Controllers
             catch (Exception e)
             {
                 Console.WriteLine(e);
+                // Provide for exceptions.
             }
             return Json(new { success = false });
         }
