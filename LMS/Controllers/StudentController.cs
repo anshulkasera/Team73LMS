@@ -236,7 +236,7 @@ namespace LMS.Controllers
             {
                 var enrollment = new Enrolled()
                 {
-                   Grade = "A+", //TODO: FIX THIS
+                   Grade = "--", 
                    UId = uid,
                    ClassId = result
                 };
