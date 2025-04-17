@@ -115,8 +115,6 @@ namespace LMS.Controllers
                         join courses in db.Courses on classes.CourseId equals courses.CourseId
                         join assignmentCategory in db.AssignmentCategories on classes.ClassId equals assignmentCategory.ClassId
                         join assignment in db.Assignments on assignmentCategory.CategoryId equals assignment.CategoryId
-                        join submission in db.Submissions on assignment.AssignmentId equals submission.AssignmentId into submissions
-                        from s1 in submissions.DefaultIfEmpty()
                         where enrollment.UId == uid && courses.Subject == subject && courses.CourseNum == num
                         && classes.SemSeason == season && classes.SemYear == year
                         select new
@@ -124,7 +122,9 @@ namespace LMS.Controllers
                             aname = assignment.Name,
                             cname = assignmentCategory.Name,
                             due = assignment.DueDate,
-                            score = (uint?)s1.Score
+                            score = (from submission in db.Submissions
+                                     where submission.AssignmentId == assignment.AssignmentId && submission.UId == uid
+                                     select (uint?)submission.Score).FirstOrDefault()
                         };
             return Json(query.ToArray());
         }
@@ -263,7 +263,7 @@ namespace LMS.Controllers
         {
             var query = (from students in db.Students
                          join enrolled in db.Enrolleds on students.UId equals enrolled.UId
-                         where students.UId == uid
+                         where students.UId == uid && enrolled.Grade != "--"
                          select enrolled.Grade).ToArray();
             if (!query.Any())
                 return Json(new

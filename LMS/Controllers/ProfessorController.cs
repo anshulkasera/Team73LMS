@@ -178,17 +178,15 @@ namespace LMS_CustomIdentity.Controllers
                             join classes in db.Classes on assignmentCategories.ClassId equals classes.ClassId
                             join courses in db.Courses on classes.CourseId equals courses.CourseId
                             join assigments in db.Assignments on assignmentCategories.CategoryId equals assigments.CategoryId
-                            into joined
-                            from j in joined.DefaultIfEmpty()
                             where courses.Subject == subject && courses.CourseNum == num && classes.SemSeason == season
                             && classes.SemYear == year
                             select new
                             {
-                                aname = j.Name,
+                                aname = assigments.Name,
                                 cname = assignmentCategories.Name,
-                                due = j.DueDate,
+                                due = assigments.DueDate,
                                 submissions = (from s in db.Submissions
-                                               where s.AssignmentId == j.AssignmentId
+                                               where s.AssignmentId == assigments.AssignmentId
                                                select s).Count()
                             };
                 return Json(query.ToArray());
