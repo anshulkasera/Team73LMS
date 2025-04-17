@@ -51,20 +51,21 @@ namespace LMS.Controllers
         /// <returns>The JSON array</returns>
         public IActionResult GetCatalog()
         {
-            var query = from departments in db.Departments
-                        join courses in db.Courses on departments.Subject equals courses.Subject
+            var query = from department in db.Departments
+                        join course in db.Courses on department.Subject equals course.Subject
+                        group new { department, course } by department.Subject into subjectGroup
                         select new
                         {
-                            subject = courses.Subject,
-                            dname = departments.Name,
-                            courses = (from c in db.Courses
-                                       where c.Subject == departments.Subject
+                            subject = subjectGroup.Key,
+                            dname = subjectGroup.FirstOrDefault().department.Name,
+                            courses = (from c in subjectGroup
                                        select new
                                        {
-                                           number = c.CourseNum,
-                                           cname = c.CourseName
+                                           number = c.course.CourseNum,
+                                           cname = c.course.CourseName
                                        }).ToList()
                         };
+
             return Json(query.ToArray());
         }
 
