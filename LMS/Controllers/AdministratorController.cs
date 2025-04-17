@@ -162,8 +162,8 @@ namespace LMS.Controllers
                         on classes.CourseId equals course.CourseId
                         into joined
                         from j in joined.DefaultIfEmpty()
-                        where ((classes.StartTime >= TimeOnly.FromDateTime(start) && classes.StartTime <= TimeOnly.FromDateTime(end))
-                        || (classes.EndTime >= TimeOnly.FromDateTime(start) && classes.EndTime <= TimeOnly.FromDateTime(end))
+                        where (((classes.StartTime >= TimeOnly.FromDateTime(start) && classes.StartTime <= TimeOnly.FromDateTime(end))
+                        || (classes.EndTime >= TimeOnly.FromDateTime(start) && classes.EndTime <= TimeOnly.FromDateTime(end)))
                         && classes.Location == location && (classes.SemSeason == season && classes.SemYear == year))
                         || ((classes.SemSeason == season && classes.SemYear == year) && (j.CourseNum == number && j.Subject == subject))
                         select j;

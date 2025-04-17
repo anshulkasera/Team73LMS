@@ -265,6 +265,12 @@ namespace LMS.Controllers
                          join enrolled in db.Enrolleds on students.UId equals enrolled.UId
                          where students.UId == uid
                          select enrolled.Grade).ToArray();
+            if (!query.Any())
+                return Json(new
+                {
+                    gpa = 0.0
+                });
+               
             float totalGrade = 0.0f;
             foreach(string grade in query)
             {
