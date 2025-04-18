@@ -326,7 +326,12 @@ namespace LMS_CustomIdentity.Controllers
             }
             return Json(new { success = true });
         }
-        //TODO: ADD COMMENT HERE AND OTHER METHOD
+        /// <summary>
+        /// Updates the grade in the class for a given student based on grade in each category and that category's weight
+        /// </summary>
+        /// <param name="classID">The id of the class where the grade is being calculated</param>
+        /// <param name="uid">The uid of the students whose grade we are calculating</param>
+        /// <exception cref="ArgumentException">Thrown if the student uid is not enrolled in the given class</exception>
         private void UpdateClassGrade(uint classID, string uid)
         {
             var categories = (from cat in db.AssignmentCategories where cat.ClassId == classID select cat).ToArray();
@@ -371,7 +376,11 @@ namespace LMS_CustomIdentity.Controllers
             newEnrollment.Grade = letterGrade;
             db.SaveChanges();
         }
-
+        /// <summary>
+        /// Returns the letter grade of the given number
+        /// </summary>
+        /// <param name="coursePercentage">The percentage of grade that the student has</param>
+        /// <returns>A string of the letter grade</returns>
         private string LetterGrade(float coursePercentage)
         {
             string letterGrade = "";
