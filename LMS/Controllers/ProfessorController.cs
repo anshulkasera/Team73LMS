@@ -463,7 +463,7 @@ namespace LMS_CustomIdentity.Controllers
                         join submissions in db.Submissions on assigments.AssignmentId equals submissions.AssignmentId
                         join students in db.Students on submissions.UId equals students.UId
                         where courses.Subject == subject && courses.CourseNum == num && classes.SemSeason == season
-                        && classes.SemYear == year && assignmentCategories.Name == category && assigments.Name == asgname
+                        && classes.SemYear == year && assignmentCategories.Name == category && assigments.Name == asgname && submissions.UId == uid
                         select submissions;
             if (!query.Any())
             {
