@@ -303,7 +303,6 @@ namespace LMS_CustomIdentity.Controllers
                                   select assignmentCategories.CategoryId).SingleOrDefault()
                 };
                 db.Assignments.Add(Assignment);
-                //db.SaveChanges();
 
             }
             var students = from student in db.Students
@@ -326,6 +325,7 @@ namespace LMS_CustomIdentity.Controllers
             }
             return Json(new { success = true });
         }
+
         /// <summary>
         /// Updates the grade in the class for a given student based on grade in each category and that category's weight
         /// </summary>
@@ -357,7 +357,7 @@ namespace LMS_CustomIdentity.Controllers
                                       where sub.UId == uid && sub.AssignmentId == asg.AssignmentId
                                       select sub.Score).ToArray();
                     if (submission.Count() == 1)
-                        catPointsEarned += submission.First(); //Problem, grabbing old score?
+                        catPointsEarned += submission.First(); 
                 }
                 float categoryPercentage = (float)catPointsEarned / (float)catTotalPoints;
                 postScaleScore += (categoryPercentage *= cat.Weight);
@@ -376,6 +376,7 @@ namespace LMS_CustomIdentity.Controllers
             newEnrollment.Grade = letterGrade;
             db.SaveChanges();
         }
+
         /// <summary>
         /// Returns the letter grade of the given number
         /// </summary>
@@ -495,7 +496,6 @@ namespace LMS_CustomIdentity.Controllers
             catch (Exception e)
             {
                 Console.WriteLine(e);
-                // Provide for exceptions.
             }
             return Json(new { success = true });
         }

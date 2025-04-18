@@ -190,8 +190,6 @@ namespace LMS.Controllers
                                     join classes in db.Classes on assignmentCategories.ClassId equals classes.ClassId
                                     join courses in db.Courses on classes.CourseId equals courses.CourseId
                                     join assigments in db.Assignments on assignmentCategories.CategoryId equals assigments.CategoryId
-                                    //join submissions in db.Submissions on assigments.AssignmentId equals submissions.AssignmentId
-                                    //join students in db.Students on submissions.UId equals students.UId
                                     where courses.Subject == subject && courses.CourseNum == num && classes.SemSeason == season
                                     && classes.SemYear == year && assignmentCategories.Name == category && assigments.Name == asgname
                                     select assigments.AssignmentId).SingleOrDefault()
